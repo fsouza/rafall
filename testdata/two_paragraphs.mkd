@@ -1,0 +1,6 @@
+Post title
+==========
+
+Hi, today I'm going to talk about [golang](http://golang.org).
+
+Do you know this amazing language?
