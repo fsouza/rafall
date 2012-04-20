@@ -1,0 +1,8 @@
+rafall
+
+rafall is a very simple static blog generator system. It uses blackfriday [1]
+for HTML generation from markdown posts.
+
+For licence, check the LICENSE file.
+
+[1] https://github.com/russross/blackfriday/
