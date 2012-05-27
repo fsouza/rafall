@@ -42,9 +42,10 @@ func extractMetadata(content []byte) ([]byte, *Metadata, error) {
 	if !bytes.HasPrefix(content, jsonStart) {
 		return content, nil, nil
 	}
+	tail := content
 	meta := new(Metadata)
 	end := bytes.Index(content, jsonEnd)
 	content = content[len(jsonStart)-1 : end+1]
 	err := json.Unmarshal(content, meta)
-	return content, meta, err
+	return tail[end+len(jsonEnd):], meta, err
 }

@@ -77,3 +77,12 @@ func TestExtractMetadataFromAFileThatDoesNotHaveMetadata(t *testing.T) {
 		t.Errorf("Metadata should be nil, but it is %q", metadata)
 	}
 }
+
+func TestExtractMetadataReturnsTail(t *testing.T) {
+	content := getContent("hello_world.html")
+	content, _, _ = extractMetadata(content)
+	expected := getContent("hello_world_without_metadata.html")
+	if bytes.Compare(content, expected) != 0 {
+		t.Errorf("Should extract metadata and return tail. Expected: %q\nGot: %q", expected, content)
+	}
+}
