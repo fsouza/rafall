@@ -2,14 +2,49 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package rafall
+package main
 
 import (
-	"github.com/russross/blackfriday"
-	"io/ioutil"
+	"bytes"
+	"encoding/json"
+	"time"
 )
 
-func GenerateHtmlFromFile(path string) ([]byte, error) {
-	content, err := ioutil.ReadFile(path)
-	return blackfriday.MarkdownCommon(content), err
+var (
+	jsonStart = []byte("<!--{")
+	jsonEnd   = []byte("}-->")
+)
+
+// Time is used to parse dates in RFC822 format from JSON
+type Time struct {
+	time.Time
+}
+
+func (t *Time) MarshalJSON() ([]byte, error) {
+	return []byte(t.Format(`"` + time.RFC822Z + `"`)), nil
+}
+
+func (t *Time) UnmarshalJSON(data []byte) (err error) {
+	var tim time.Time
+	if tim, err = time.Parse(`"`+time.RFC822Z+`"`, string(data)); err == nil {
+		*t = Time{tim}
+	}
+	return
+}
+
+type Metadata struct {
+	Title string
+	Date  Time
+	Tags  []string
+}
+
+func extractMetadata(content []byte) ([]byte, *Metadata, error) {
+	if !bytes.HasPrefix(content, jsonStart) {
+		return content, nil, nil
+	}
+	meta := new(Metadata)
+	end := bytes.Index(content, jsonEnd)
+	content = content[len(jsonStart)-1 : end+1]
+	err := json.Unmarshal(content, meta)
+	return content, meta, err
 }

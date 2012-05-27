@@ -2,39 +2,78 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package rafall
+package main
 
 import (
+	"bytes"
 	"io/ioutil"
-	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 )
 
-var testfilenames = []string{"hello_world", "two_paragraphs"}
-
-func getPathAndExpectedOutput(filename string) (string, []byte) {
-	path, _ := filepath.Abs("testdata/" + filename + ".mkd")
-	output, _ := ioutil.ReadFile("testdata/" + filename + ".html")
-	return path, output
+func getContent(filename string) []byte {
+	c, err := ioutil.ReadFile("testdata/" + filename)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
 
-func TestGenerateHtmlFromFile(t *testing.T) {
-	for _, filename := range testfilenames {
-		path, expected := getPathAndExpectedOutput(filename)
-		got, _ := GenerateHtmlFromFile(path)
-		if !reflect.DeepEqual(expected, got) {
-			t.Errorf("Expected:\n%s\nfor the file %s, but got:\n%s", string(expected), filename, string(got))
-		}
+func TestTimeMarshalJSON(t *testing.T) {
+	expected := []byte(`"28 May 12 02:00 -0300"`)
+	inputTime, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-28 02:00:00 -0300")
+	if err != nil {
+		t.Error(err)
+	}
+	tim := Time{inputTime}
+	got, _ := tim.MarshalJSON()
+	if bytes.Compare(expected, got) != 0 {
+		t.Errorf("Failed to marshal time as json.\nExpected: %q\nGot: %q", expected, got)
 	}
 }
 
-func TestGenerateHtmlFromFileReturnErrorsWhenTheFileDoesNotExist(t *testing.T) {
-	content, err := GenerateHtmlFromFile("/some/path/that/should/not/exist")
-	if content != nil {
-		t.Errorf("Should return nil when the file does not exist, returned: %q", content)
+func TestTimeUnmarshalJSON(t *testing.T) {
+	tim, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-28 02:00:00 -0300")
+	if err != nil {
+		t.Error(err)
 	}
-	if err == nil {
-		t.Errorf("Should return error when the file does not exist, returned: %q", err)
+	expected := Time{tim}
+	input := []byte(`"28 May 12 02:00 -0300"`)
+	got := Time{}
+	err = got.UnmarshalJSON(input)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(expected, got) {
+		t.Errorf("Failed to unmarshal %s.\nExpected: %q\nGot: %q", string(input), expected, got)
+	}
+}
+
+func TestExtractMetadata(t *testing.T) {
+	expectedTime, _ := time.Parse(time.RFC822Z, "27 May 12 01:50 -0300")
+	expected := Metadata{
+		Title: "Hello world",
+		Tags:  []string{"post"},
+		Date:  Time{expectedTime},
+	}
+	content := getContent("hello_world.html")
+	content, metadata, err := extractMetadata(content)
+	if err != nil {
+		t.Error(nil)
+	}
+	if !reflect.DeepEqual(*metadata, expected) {
+		t.Errorf("Expected metadata: %q\nGot metadata: %q", expected, metadata)
+	}
+}
+
+func TestExtractMetadataFromAFileThatDoesNotHaveMetadata(t *testing.T) {
+	content := getContent("two_paragraphs.html")
+	content, metadata, err := extractMetadata(content)
+	if err != nil {
+		t.Error(nil)
+	}
+	if metadata != nil {
+		t.Errorf("Metadata should be nil, but it is %q", metadata)
 	}
 }
