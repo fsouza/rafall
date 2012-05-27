@@ -1,8 +1,7 @@
 rafall
 
-rafall is a very simple static blog generator system. It uses blackfriday [1]
-for HTML generation from markdown posts.
+rafall is a very simple static blog generator system, based on Go builtin
+packages. It uses the html/template package and encoding/json for metadata
+and configuration.
 
 For licence, check the LICENSE file.
-
-[1] https://github.com/russross/blackfriday/
