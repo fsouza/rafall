@@ -7,6 +7,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"os"
 	"time"
@@ -73,4 +74,18 @@ func NewGenerator(configFile string) (g Generator, err error) {
 	}
 	g.config, err = readConfig(b)
 	return
+}
+
+var configFile string
+
+func init() {
+	flag.StringVar(&configFile, "conf", "etc/rafall.conf", "config file (in json format)")
+}
+
+func main() {
+	flag.Parse()
+	_, err := NewGenerator(configFile)
+	if err != nil {
+		panic(err)
+	}
 }
