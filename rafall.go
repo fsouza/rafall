@@ -7,6 +7,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"time"
 )
 
@@ -52,5 +54,23 @@ func extractMetadata(content []byte) ([]byte, *Metadata, error) {
 
 func readConfig(content []byte) (config map[string]string, err error) {
 	err = json.Unmarshal(content, &config)
+	return
+}
+
+type Generator struct {
+	config map[string]string
+}
+
+func NewGenerator(configFile string) (g Generator, err error) {
+	f, err := os.Open(configFile)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+	g.config, err = readConfig(b)
 	return
 }

@@ -87,12 +87,29 @@ func TestExtractMetadataReturnsTail(t *testing.T) {
 	}
 }
 
+func TestNewGenerator(t *testing.T) {
+	g, err := NewGenerator("testdata/config")
+	if err != nil {
+		t.Error(err)
+	}
+	if g.config["siteName"] != "Rafall" {
+		t.Errorf("Should read config from given config file")
+	}
+}
+
+func TestNewGeneratorReturnsErrorIfTheFileDoesNotExist(t *testing.T) {
+	_, err := NewGenerator("something/that/does/not/exist")
+	if err == nil {
+		t.Error("Should return error if the file does not exist, but returned nil")
+	}
+}
+
 func TestReadConfig(t *testing.T) {
 	conf := getContent("config")
 	expected := map[string]string{
-		"siteName": "Rafall",
-		"subtitle": "Random stuff",
-		"description": "hi, my name is rafall",
+		"siteName":        "Rafall",
+		"subtitle":        "Random stuff",
+		"description":     "hi, my name is rafall",
 		"disqusShortname": "rafall",
 	}
 	config, err := readConfig(conf)
