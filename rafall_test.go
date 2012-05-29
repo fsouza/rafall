@@ -86,3 +86,27 @@ func TestExtractMetadataReturnsTail(t *testing.T) {
 		t.Errorf("Should extract metadata and return tail. Expected: %q\nGot: %q", expected, content)
 	}
 }
+
+func TestReadConfig(t *testing.T) {
+	conf := getContent("config")
+	expected := map[string]string{
+		"siteName": "Rafall",
+		"subtitle": "Random stuff",
+		"description": "hi, my name is rafall",
+		"disqusShortname": "rafall",
+	}
+	config, err := readConfig(conf)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(expected, config) {
+		t.Errorf("Should read config from bytes.\nExpected: %q\nGot: %q", expected, config)
+	}
+}
+
+func TestReadConfigReturnsErrorIfJSONIsInvalid(t *testing.T) {
+	_, err := readConfig([]byte("invalid;json:"))
+	if err == nil {
+		t.Error("Should return error if the json is invalid, but returned nil")
+	}
+}

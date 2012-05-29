@@ -49,3 +49,8 @@ func extractMetadata(content []byte) ([]byte, *Metadata, error) {
 	err := json.Unmarshal(content, meta)
 	return tail[end+len(jsonEnd):], meta, err
 }
+
+func readConfig(content []byte) (config map[string]string, err error) {
+	err = json.Unmarshal(content, &config)
+	return
+}
