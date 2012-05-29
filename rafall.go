@@ -133,6 +133,7 @@ func (g *Generator) collectFiles() (fl FileList, err error) {
 		content, metadata, err := extractMetadata(b)
 		if err != nil {
 			fmt.Printf("Failed to extract metadata from %s: %s", name, err.Error())
+			continue
 		}
 		fl.Append(metadata, content)
 	}
