@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -139,18 +138,4 @@ func (g *Generator) collectFiles() (fl FileList, err error) {
 	}
 	sort.Sort(&fl)
 	return
-}
-
-var configFile string
-
-func init() {
-	flag.StringVar(&configFile, "conf", "etc/rafall.conf", "config file (in json format)")
-}
-
-func main() {
-	flag.Parse()
-	_, err := NewGenerator(configFile)
-	if err != nil {
-		panic(err)
-	}
 }
