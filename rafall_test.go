@@ -7,10 +7,26 @@ package main
 import (
 	"bytes"
 	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 	"time"
 )
+
+func buildGenerator() (g Generator) {
+	g.config = map[string]string{
+		"siteName":        "Rafall",
+		"subtitle":        "Random stuff",
+		"description":     "hi, my name is rafall",
+		"disqusShortname": "rafall",
+	}
+	g.metaFiles = map[string]string{
+		"archive": "archive.html",
+		"layout":  "layout.html",
+		"post":    "post.html",
+	}
+	return
+}
 
 func getContent(filename string) []byte {
 	c, err := ioutil.ReadFile("testdata/" + filename)
@@ -62,19 +78,16 @@ func TestExtractMetadata(t *testing.T) {
 	if err != nil {
 		t.Error(nil)
 	}
-	if !reflect.DeepEqual(*metadata, expected) {
+	if !reflect.DeepEqual(metadata, expected) {
 		t.Errorf("Expected metadata: %q\nGot metadata: %q", expected, metadata)
 	}
 }
 
 func TestExtractMetadataFromAFileThatDoesNotHaveMetadata(t *testing.T) {
 	content := getContent("two_paragraphs.html")
-	content, metadata, err := extractMetadata(content)
+	content, _, err := extractMetadata(content)
 	if err != nil {
 		t.Error(nil)
-	}
-	if metadata != nil {
-		t.Errorf("Metadata should be nil, but it is %q", metadata)
 	}
 }
 
@@ -125,5 +138,72 @@ func TestReadConfigReturnsErrorIfJSONIsInvalid(t *testing.T) {
 	_, err := readConfig([]byte("invalid;json:"))
 	if err == nil {
 		t.Error("Should return error if the json is invalid, but returned nil")
+	}
+}
+
+func TestIsMetaFile(t *testing.T) {
+	input := map[string]bool{
+		"archive.html":   true,
+		"layout.html":    true,
+		"post.html":      true,
+		"francisco.html": false,
+		"something.xml":  false,
+	}
+	g := buildGenerator()
+	for k, v := range input {
+		if g.isMetaFile(k) != v {
+			t.Errorf("Should %s be metafile?\nExpected: %q\nGot: %q", k, v, !v)
+		}
+	}
+}
+
+func TestIsValid(t *testing.T) {
+	input := map[string]bool{
+		"archive.html":   false,
+		"abc.xml":        false,
+		"francisco.html": true,
+	}
+	g := buildGenerator()
+	for k, v := range input {
+		if g.isValid(k) != v {
+			t.Errorf("Should %s be valid?\nExpected: %q\nGot: %q", k, v, !v)
+		}
+	}
+}
+
+func TestCollectFiles(t *testing.T) {
+	g := buildGenerator()
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Error(err)
+	}
+	defer os.Chdir(cwd)
+	os.Chdir("testdata/sampleproject")
+	fl, err := g.collectFiles()
+	if err != nil {
+		t.Error(err)
+	}
+	time1, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-28 23:56:00 -0300")
+	if err != nil {
+		t.Error(err)
+	}
+	time2, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-29 12:00:00 -0300")
+	if err != nil {
+		t.Error(err)
+	}
+	expectedMetas := []Metadata{
+		Metadata{
+			Title: "Hello world",
+			Date:  Time{time1},
+			Tags:  []string{"hello", "world"},
+		},
+		Metadata{
+			Title: "Good bye cruel world",
+			Date:  Time{time2},
+			Tags:  []string{"goodbye", "world"},
+		},
+	}
+	if !reflect.DeepEqual(expectedMetas, fl.metas) {
+		t.Errorf("Should return all metadatas as expected, sorted by date.\nExpected: %q\nGot: %q", expectedMetas, fl.metas)
 	}
 }
