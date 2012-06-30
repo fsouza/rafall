@@ -163,7 +163,7 @@ func TestNextReturnsTheNextItemInTheList(t *testing.T) {
 		t.Error("Should get the next content from the iterator.")
 	}
 	if !present {
-		t.Error("Once the iterator returned ")
+		t.Error("Once the iterator returned valid metadata and content, the third value must be true.")
 	}
 }
 
