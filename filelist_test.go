@@ -6,6 +6,7 @@ package main
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -127,5 +128,50 @@ func TestSwapShouldSwapBothInnerSlices(t *testing.T) {
 	}
 	if bytes.Compare(list.contents[0], []byte("hi")) == 0 {
 		t.Errorf("Should swap items in the contents slice")
+	}
+}
+
+func TestNextReturnsTheNextItemInTheList(t *testing.T) {
+	time1, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-28 23:56:00 -0300")
+	if err != nil {
+		t.Error(err)
+	}
+	time2, err := time.Parse("2006-01-02 15:04:05 -0700", "2012-05-29 12:00:00 -0300")
+	if err != nil {
+		t.Error(err)
+	}
+	list := FileList{}
+	list.metas = []Metadata{
+		Metadata{
+			Title: "Python get's old",
+			Date:  Time{time1},
+			Tags:  []string{"python"},
+		},
+		Metadata{
+			Title: "Gopher got a lady",
+			Date:  Time{time2},
+			Tags:  []string{"gopher"},
+		},
+	}
+	list.contents = [][]byte{[]byte("hi"), []byte("there!")}
+	iter := list.Iter()
+	meta, content, present := iter.Next()
+	if !reflect.DeepEqual(meta, list.metas[0]) {
+		t.Error("Should get the next metadata from the iterator.")
+	}
+	if !reflect.DeepEqual(content, list.contents[0]) {
+		t.Error("Should get the next content from the iterator.")
+	}
+	if !present {
+		t.Error("Once the iterator returned ")
+	}
+}
+
+func TestIterNextShouldReturnFalseWhenThereIsNoElementInTheListAnymore(t *testing.T) {
+	list := FileList{}
+	iter := list.Iter()
+	_, _, present := iter.Next()
+	if present {
+		t.Error("Since the list is empty, no item is present.")
 	}
 }

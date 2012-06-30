@@ -16,6 +16,15 @@ type FileList struct {
 	contents [][]byte
 }
 
+// File represents a file in memory.
+//
+// Each file contains a Metadata and a slice of byte that represents the
+// content.
+type File struct {
+	meta    Metadata
+	content []byte
+}
+
 // Append adds a file to the internal list.
 //
 // The file is identified by its metadata and content.
@@ -51,4 +60,39 @@ func (fl *FileList) Swap(x, y int) {
 		fl.metas[x], fl.metas[y] = fl.metas[y], fl.metas[x]
 		fl.contents[x], fl.contents[y] = fl.contents[y], fl.contents[x]
 	}
+}
+
+// Iter returns an instance of the Iter type, and should be used to iterate the
+// list.
+func (fl *FileList) Iter() *Iter {
+	ch := make(chan File)
+	go func(fl *FileList, fch chan File) {
+		for i, meta := range fl.metas {
+			fch <- File{
+				meta:    meta,
+				content: fl.contents[i],
+			}
+		}
+		close(fch)
+	}(fl, ch)
+	return &Iter{
+		fch: ch,
+	}
+}
+
+// Iter represents a iterator that iterates through a filelist.
+//
+// To get an interator, you should call the Iter method on FileList type.
+type Iter struct {
+	fch chan File
+}
+
+// Next returns the next element in the iterator, or false in the third return
+// value, indicating that there are no more elements to iterate over.
+func (i *Iter) Next() (meta Metadata, content []byte, present bool) {
+	var f File
+	f, present = <-i.fch
+	meta = f.meta
+	content = f.content
+	return
 }
