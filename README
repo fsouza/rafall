@@ -4,4 +4,4 @@ rafall is a very simple static blog generator system, based on Go builtin
 packages. It uses the html/template package and encoding/json for metadata
 and configuration.
 
-For licence, check the LICENSE file.
+For license, check the LICENSE file.
